@@ -1,0 +1,127 @@
+module and_(input logic i1, i2, output logic o);
+    assign o = i1 & i2;
+endmodule  
+module or_ (input logic i1, i2, output logic o);
+    assign o = i1 | i2;
+endmodule
+module not_(input logic i, output logic o);
+    assign o = ~i;
+endmodule
+module mux4_1(input logic input1, input2, input3, input4, select1, select2, output logic outp);
+     assign outp = select2 ? (select1 ? input4 : input3) : (select1 ? input2 : input1); 
+endmodule
+module mux4_1_Test();
+    logic in1, in2, in3, in4, sel1, sel2, out;
+    mux4_1 m4(in1, in2, in3, in4, sel1, sel2, out);
+    initial begin
+    in1 = 0; in2 = 0; in3 = 0; in4 = 0; sel1 = 0; sel2= 0; #15;
+    in1 = 0; in2 = 0; in3 = 0; in4 = 0; sel1 = 0; sel2= 1; #15;
+    in1 = 0; in2 = 0; in3 = 0; in4 = 0; sel1 = 1; sel2= 0; #15;
+    in1 = 0; in2 = 0; in3 = 0; in4 = 0; sel1 = 1; sel2= 1; #15;
+    in1 = 0; in2 = 0; in3 = 0; in4 = 1; sel1 = 0; sel2= 0; #15;
+    in1 = 0; in2 = 0; in3 = 0; in4 = 1; sel1 = 0; sel2= 1; #15;
+    in1 = 0; in2 = 0; in3 = 0; in4 = 1; sel1 = 1; sel2= 0; #15;
+    in1 = 0; in2 = 0; in3 = 0; in4 = 1; sel1 = 1; sel2= 1; #15;
+    in1 = 0; in2 = 0; in3 = 1; in4 = 0; sel1 = 0; sel2= 0; #15;
+    in1 = 0; in2 = 0; in3 = 1; in4 = 0; sel1 = 0; sel2= 1; #15;
+    in1 = 0; in2 = 0; in3 = 1; in4 = 0; sel1 = 1; sel2= 0; #15;
+    in1 = 0; in2 = 0; in3 = 1; in4 = 0; sel1 = 1; sel2= 1; #15;
+    in1 = 0; in2 = 0; in3 = 1; in4 = 1; sel1 = 0; sel2= 0; #15;
+    in1 = 0; in2 = 0; in3 = 1; in4 = 1; sel1 = 0; sel2= 1; #15;
+    in1 = 0; in2 = 0; in3 = 1; in4 = 1; sel1 = 1; sel2= 0; #15;
+    in1 = 0; in2 = 0; in3 = 1; in4 = 1; sel1 = 1; sel2= 1; #15;
+    in1 = 0; in2 = 1; in3 = 0; in4 = 0; sel1 = 0; sel2= 0; #15;
+    in1 = 0; in2 = 1; in3 = 0; in4 = 0; sel1 = 0; sel2= 1; #15;
+    in1 = 0; in2 = 1; in3 = 0; in4 = 0; sel1 = 1; sel2= 0; #15;
+    in1 = 0; in2 = 1; in3 = 0; in4 = 0; sel1 = 1; sel2= 1; #15;
+    in1 = 0; in2 = 1; in3 = 0; in4 = 1; sel1 = 0; sel2= 0; #15;
+    in1 = 0; in2 = 1; in3 = 0; in4 = 1; sel1 = 0; sel2= 1; #15;
+    in1 = 0; in2 = 1; in3 = 0; in4 = 1; sel1 = 1; sel2= 0; #15;
+    in1 = 0; in2 = 1; in3 = 0; in4 = 1; sel1 = 1; sel2= 1; #15;
+    in1 = 0; in2 = 1; in3 = 1; in4 = 0; sel1 = 0; sel2= 0; #15;
+    in1 = 0; in2 = 1; in3 = 1; in4 = 0; sel1 = 0; sel2= 1; #15;
+    in1 = 0; in2 = 1; in3 = 1; in4 = 0; sel1 = 1; sel2= 0; #15;
+    in1 = 0; in2 = 1; in3 = 1; in4 = 0; sel1 = 1; sel2= 1; #15;
+    in1 = 0; in2 = 1; in3 = 1; in4 = 1; sel1 = 0; sel2= 0; #15;
+    in1 = 0; in2 = 1; in3 = 1; in4 = 1; sel1 = 0; sel2= 1; #15;
+    in1 = 0; in2 = 1; in3 = 1; in4 = 1; sel1 = 1; sel2= 0; #15;
+    in1 = 0; in2 = 1; in3 = 1; in4 = 1; sel1 = 1; sel2= 1; #15;
+    in1 = 1; in2 = 0; in3 = 0; in4 = 0; sel1 = 0; sel2= 0; #15;
+    in1 = 1; in2 = 0; in3 = 0; in4 = 0; sel1 = 0; sel2= 1; #15;
+    in1 = 1; in2 = 0; in3 = 0; in4 = 0; sel1 = 1; sel2= 0; #15;
+    in1 = 1; in2 = 0; in3 = 0; in4 = 0; sel1 = 1; sel2= 1; #15;
+    in1 = 1; in2 = 0; in3 = 0; in4 = 1; sel1 = 0; sel2= 0; #15;
+    in1 = 1; in2 = 0; in3 = 0; in4 = 1; sel1 = 0; sel2= 1; #15;
+    in1 = 1; in2 = 0; in3 = 0; in4 = 1; sel1 = 1; sel2= 0; #15;
+    in1 = 1; in2 = 0; in3 = 0; in4 = 1; sel1 = 1; sel2= 1; #15;
+    in1 = 1; in2 = 0; in3 = 1; in4 = 0; sel1 = 0; sel2= 0; #15;
+    in1 = 1; in2 = 0; in3 = 1; in4 = 0; sel1 = 0; sel2= 1; #15;
+    in1 = 1; in2 = 0; in3 = 1; in4 = 0; sel1 = 1; sel2= 0; #15;
+    in1 = 1; in2 = 0; in3 = 1; in4 = 0; sel1 = 1; sel2= 1; #15;
+    in1 = 1; in2 = 0; in3 = 1; in4 = 1; sel1 = 0; sel2= 0; #15;
+    in1 = 1; in2 = 0; in3 = 1; in4 = 1; sel1 = 0; sel2= 1; #15;
+    in1 = 1; in2 = 0; in3 = 1; in4 = 1; sel1 = 1; sel2= 0; #15;
+    in1 = 1; in2 = 0; in3 = 1; in4 = 1; sel1 = 1; sel2= 1; #15;
+    in1 = 1; in2 = 1; in3 = 0; in4 = 0; sel1 = 0; sel2= 0; #15;
+    in1 = 1; in2 = 1; in3 = 0; in4 = 0; sel1 = 0; sel2= 1; #15;
+    in1 = 1; in2 = 1; in3 = 0; in4 = 0; sel1 = 1; sel2= 0; #15;
+    in1 = 1; in2 = 1; in3 = 0; in4 = 0; sel1 = 1; sel2= 1; #15;
+    in1 = 1; in2 = 1; in3 = 0; in4 = 1; sel1 = 0; sel2= 0; #15;
+    in1 = 1; in2 = 1; in3 = 0; in4 = 1; sel1 = 0; sel2= 1; #15;
+    in1 = 1; in2 = 1; in3 = 0; in4 = 1; sel1 = 1; sel2= 0; #15;
+    in1 = 1; in2 = 1; in3 = 0; in4 = 1; sel1 = 1; sel2= 1; #15;
+    in1 = 1; in2 = 1; in3 = 1; in4 = 0; sel1 = 0; sel2= 0; #15;
+    in1 = 1; in2 = 1; in3 = 1; in4 = 0; sel1 = 0; sel2= 1; #15;
+    in1 = 1; in2 = 1; in3 = 1; in4 = 0; sel1 = 1; sel2= 0; #15;
+    in1 = 1; in2 = 1; in3 = 1; in4 = 0; sel1 = 1; sel2= 1; #15;
+    in1 = 1; in2 = 1; in3 = 1; in4 = 1; sel1 = 0; sel2= 0; #15;
+    in1 = 1; in2 = 1; in3 = 1; in4 = 1; sel1 = 0; sel2= 1; #15;
+    in1 = 1; in2 = 1; in3 = 1; in4 = 1; sel1 = 1; sel2= 0; #15;
+    in1 = 1; in2 = 1; in3 = 1; in4 = 1; sel1 = 1; sel2= 1; #15;
+    end
+endmodule
+module mux4_1(input logic input1, input2, input3, input4, select1, select2, output logic outp);
+     assign outp = select2 ? (select1 ? input4 : input3) : (select1 ? input2 : input1); 
+endmodule
+module mux8_1(input logic in0, in1, in2, in3, in4, in5, in6, in7, sel0, sel1, sel2,
+ output logic out);
+    logic n1, n2, not_select2, n4, n5;
+    mux4_1 m1(in0, in1, in2, in3, sel0, sel1, n1);
+    mux4_1 m2(in4, in5, in6, in7, sel0, sel1, n2);
+    not_ n(sel2, not_select2);
+    and_ and1(not_select2, n1, n4);
+    and_ and2(sel2, n2, n5);
+    or_ or1(n4, n5, out);
+endmodule
+
+module func(input logic a, b, c, d, output logic f);
+    logic notd;
+    logic one;
+    logic zero;
+    assign one = 1;
+    assign zero = 0;
+    assign notd = ~d;
+    mux8_1 mux(zero, notd, d, one, zero, notd, one, d, c, b, a, f);
+endmodule
+
+module two_four_decoder(input logic firstInput, secondInput, enable, output logic firstout, secondout,
+thirdout, fourthout);
+    assign firstout = ~firstInput & ~secondInput & enable;
+    assign secondout = ~firstInput & secondInput & enable;
+    assign thirdout = firstInput & ~secondInput & enable;
+    assign fourthout = firstInput & secondInput & enable; 
+endmodule   
+module decoderTest();
+    logic in1, in2, enable, out1, out2, out3, out4;
+    two_four_decoder decod(in1, in2, enable, out1, out2, out3, out4);
+    initial begin
+    in1 = 0; in2 = 0; enable = 0; #20;
+    in1 = 0; in2 = 0; enable = 1; #20;
+    in1 = 0; in2 = 1; enable = 0; #20;
+    in1 = 0; in2 = 1; enable = 1; #20;
+    in1 = 1; in2 = 0; enable = 0; #20;
+    in1 = 1; in2 = 0; enable = 1; #20;
+    in1 = 1; in2 = 1; enable = 0; #20;
+    in1 = 1; in2 = 1; enable = 1; #20;
+    end
+endmodule

@@ -1,0 +1,181 @@
+module full_adder_behavioral(
+    input logic a, b, c,
+    output logic sum, carryout
+    );
+    assign sum = a ^ b ^ c;
+    assign carryout = ((a ^ b) & c) |(a & b) ;
+endmodule
+
+module full_adder_tester();
+    logic a, b, c, sum, carryout;
+    full_adder_behavioral add(a, b, c, sum, carryout);
+    initial begin
+    a = 0; b = 0; c = 0; #30;
+    a = 0; b = 0; c = 1; #30;
+    a = 0; b = 1; c = 0; #30;
+    a = 0; b = 1; c = 1; #30;
+    a = 1; b = 0; c = 0; #30;
+    a = 1; b = 0; c = 1; #30;
+    a = 1; b = 1; c = 0; #30;
+    a = 1; b = 1; c = 1; #30;
+    end
+endmodule
+
+module fulladder(input logic a, b, cin, output logic sum, carryout);
+    logic a1, a2, a3;
+    xor g1(a1,a,b);
+    and g2(a2, a, b);
+    and g3(a3,a1,cin);
+    or g4(carryout, a2, a3);
+    xor g5(sum, a1,cin);
+endmodule    
+
+module fulladdertest(
+    );
+   logic a, b, Cin, sum, carryout;
+   fulladder add(a, b, Cin, sum, carryout);
+   initial begin
+   a = 0; b = 0; Cin = 0; #10;
+   a = 0; b = 0; Cin = 1; #10;  
+   a = 0; b = 1; Cin = 0; #10;
+   a = 0; b = 1; Cin = 1; #10;
+   a = 1; b = 0; Cin = 0; #10;
+   a = 1; b = 0; Cin = 1; #10;
+   a = 1; b = 1; Cin = 0; #10;  
+   a = 1; b = 1; Cin = 1; #10;  
+   end
+endmodule
+
+module half_adder(input logic a,b, output logic sum, carryout);
+    xor_ xx(a, b, sum);
+    and_ aaa(a, b, carryout);
+endmodule
+
+module half_subtractor(input logic a, b, output logic diff, borrow);
+    logic m;
+    xor_ x(a,b, diff);
+    not_ n(a, m);
+    and_ aa(m, b, borrow);
+endmodule
+
+module m41 ( input logic a,  b, c, d, s0, s1,
+output logic out); 
+
+ assign out = s1 ? (s0 ? d : c) : (s0 ? b : a); 
+
+endmodule
+
+module and_(input logic k,l, output logic m);
+    assign m = k & l;
+endmodule
+
+module nor_(input logic k,l, output logic m);
+    assign m = ~(k | l);
+endmodule
+
+module xor_(input logic k,l, output logic m);
+    assign m = k ^ l;
+endmodule
+module not_(input logic k, output logic m);
+    assign m = ~k;
+endmodule 
+
+module lab_calculator(input logic sel1, sel2, in1, in2, output logic out1, out2);
+     logic one, two, sum, carry, differ, borrow, h;
+     and_ f(in1, in2, one);
+     nor_ g(in1, in2, two);
+     half_adder add(in1, in2, sum, carry);
+     half_subtractor sub( in1, in2, differ, borrow);
+     
+     m41 mux(one, two, sum, differ, sel1, sel2, out1);
+     m41 mux2(H, H, carry, borrow, sel1, sel2, out2);
+endmodule          
+module lab_calculator_test(
+    );
+    logic c, d, a, b, y, z;
+    lab_calculator calculate(d, c, a, b, y, z);
+    initial begin
+    c = 0; d = 0; a = 0; b = 0; #40;
+    c = 0; d = 0; a = 0; b = 1; #40;
+    c = 0; d = 0; a = 1; b = 0; #40;
+    c = 0; d = 0; a = 1; b = 1; #40;
+    c = 0; d = 1; a = 0; b = 0; #40;
+    c = 0; d = 1; a = 0; b = 1; #40;
+    c = 0; d = 1; a = 1; b = 0; #40;
+    c = 0; d = 1; a = 1; b = 1; #40;
+    c = 1; d = 0; a = 0; b = 0; #40;
+    c = 1; d = 0; a = 0; b = 1; #40;
+    c = 1; d = 0; a = 1; b = 0; #40;
+    c = 1; d = 0; a = 1; b = 1; #40;
+    c = 1; d = 1; a = 0; b = 0; #40;
+    c = 1; d = 1; a = 0; b = 1; #40;
+    c = 1; d = 1; a = 1; b = 0; #40;
+    c = 1; d = 1; a = 1; b = 1; #40;
+    end
+    
+    
+endmodule
+module xor_(output logic out, input logic in1, in2);
+    assign out = in1 ^ in2;
+endmodule
+
+module and_(output logic out, input logic in1, in2);
+    assign out = in1 & in2;
+endmodule
+module or_(output logic out, input logic in1, in2);
+    assign out = in1 | in2;
+endmodule
+module fulladder_(input logic a, b, cin, output logic sum, carryout);
+    logic a1, a2, a3;
+    xor_  g1(a1,a,b);
+    and_ g2(a2, a, b);
+    and_ g3(a3,a1,cin);
+    or_ g4(carryout, a2, a3);
+    xor_ g5(sum, a1,cin);
+endmodule
+module two_bit_adder_(input logic a1, a2, b1, b2, cin, output logic sum1, sum2, carryout);
+    logic carry1;
+    fulladder_ adder1(a1, b1, cin, sum1, carry1);
+    fulladder_ adder2(a2, b2, carry1, sum2, carryout);
+ endmodule   
+module two_bit_adder_simulation(   
+    );
+    logic a1, b1, a2, b2, cin, sum1, sum2, carryout;
+    two_bit_adder_ adder(a1, a2, b1, b2, cin, sum1, sum2, carryout);
+    initial begin
+    a1 = 0; a2 = 0; b1 = 0; b2 = 0; cin = 0; #10;
+    a1 = 0; a2 = 0; b1 = 0; b2 = 0; cin = 1; #10;
+    a1 = 0; a2 = 0; b1 = 0; b2 = 1; cin = 0; #10;
+    a1 = 0; a2 = 0; b1 = 0; b2 = 1; cin = 1; #10;
+    a1 = 0; a2 = 0; b1 = 1; b2 = 0; cin = 0; #10;
+    a1 = 0; a2 = 0; b1 = 1; b2 = 0; cin = 1; #10;
+    a1 = 0; a2 = 0; b1 = 1; b2 = 1; cin = 0; #10;
+    a1 = 0; a2 = 0; b1 = 1; b2 = 1; cin = 1; #10;
+    a1 = 0; a2 = 1; b1 = 0; b2 = 0; cin = 0; #30;
+    a1 = 0; a2 = 1; b1 = 0; b2 = 0; cin = 1; #30;
+    a1 = 0; a2 = 1; b1 = 0; b2 = 1; cin = 0; #30;
+    a1 = 0; a2 = 1; b1 = 0; b2 = 1; cin = 1; #30;
+    a1 = 0; a2 = 1; b1 = 1; b2 = 0; cin = 0; #30;
+    a1 = 0; a2 = 1; b1 = 1; b2 = 0; cin = 1; #30;
+    a1 = 0; a2 = 1; b1 = 1; b2 = 1; cin = 0; #30;
+    a1 = 1; a2 = 1; b1 = 1; b2 = 1; cin = 1; #30;
+    a1 = 1; a2 = 0; b1 = 0; b2 = 0; cin = 0; #30;
+    a1 = 1; a2 = 0; b1 = 0; b2 = 0; cin = 1; #30;
+    a1 = 1; a2 = 0; b1 = 0; b2 = 1; cin = 0; #30;
+    a1 = 1; a2 = 0; b1 = 0; b2 = 1; cin = 1; #30;
+    a1 = 1; a2 = 0; b1 = 1; b2 = 0; cin = 0; #30;
+    a1 = 1; a2 = 0; b1 = 1; b2 = 0; cin = 1; #30;
+    a1 = 1; a2 = 0; b1 = 1; b2 = 1; cin = 0; #30;
+    a1 = 1; a2 = 0; b1 = 1; b2 = 1; cin = 1; #30;
+    a1 = 1; a2 = 1; b1 = 0; b2 = 0; cin = 0; #30;
+    a1 = 1; a2 = 1; b1 = 0; b2 = 0; cin = 1; #30;
+    a1 = 1; a2 = 1; b1 = 0; b2 = 1; cin = 0; #30;
+    a1 = 1; a2 = 1; b1 = 0; b2 = 1; cin = 1; #30;
+    a1 = 1; a2 = 1; b1 = 1; b2 = 0; cin = 0; #30;
+    a1 = 1; a2 = 1; b1 = 1; b2 = 0; cin = 1; #30;
+    a1 = 1; a2 = 1; b1 = 1; b2 = 1; cin = 0; #30;
+    a1 = 1; a2 = 1; b1 = 1; b2 = 1; cin = 1; #30;
+end    
+    
+endmodule
+

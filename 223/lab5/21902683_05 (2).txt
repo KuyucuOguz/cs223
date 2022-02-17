@@ -1,0 +1,114 @@
+module traffic_lights(input logic Sa, Sb, clk, reset, output logic [2:0] La, [2:0] Lb);
+    typedef enum logic [2:0]{S0, S1, S2, S3, S4, S5, S6, S7} State;
+    State currentState, nextState;
+    always_ff @(posedge clk)
+        if(reset)
+            currentState <= S0;
+        else
+            currentState <= nextState;
+     always_comb
+        case(currentState)
+            S0: if(Sa) nextState <= S0;
+                else   nextState <= S1;
+            S1: nextState <= S2;
+            S2: nextState <= S3;
+            S3: nextState <= S4;
+            S4: if(Sb) nextState <= S4;
+                else   nextState <= S5;
+            S5: nextState <= S6;
+            S6: nextState <= S7;
+            S7: nextState <= S0;
+         endcase       
+     assign La[0] = 1;
+     assign Lb[0] = 1;
+     assign La[1] = (currentState == S0 | currentState == S2 | currentState ==  S3 |currentState ==  S4 | currentState ==  S5 |currentState ==  S6 );
+     assign La[2] = (currentState ==  S2 |currentState ==  S3 |currentState ==  S4 |currentState ==  S5 |currentState ==  S6);
+     assign Lb[1] = (currentState == S0 |currentState ==  S1 |currentState ==   S2 |currentState ==  S4 | currentState ==  S6 |currentState ==  S7);
+     assign Lb[2] = (currentState == S0 |currentState ==  S1  |currentState ==   S2 |currentState ==  S6 |currentState ==  S7);
+endmodule
+
+module traffic_test();
+    logic Sa, Sb, clk, reset;
+    logic [2:0] La;
+    logic [2:0] Lb;
+    traffic_lights lights(Sa, Sb, clk, reset, La, Lb);
+    initial begin
+        clk = 0; #5;
+        reset = 1;
+        clk = 1; #5;
+        reset = 0; #5;
+        Sb = 1;
+        Sa = 0;
+        for (int i=0; i<10; i=i+1)
+            begin
+                clk = ~clk;
+                #25; 
+            end
+         Sa = 1;
+         Sb = 0;
+         for (int i=0; i<10; i=i+1)
+            begin
+                clk = ~clk;
+                #25; 
+            end
+         Sa = 0;
+         Sb = 1;
+         for (int i=0; i<10; i=i+1)
+            begin
+                clk = ~clk;
+                #25;
+                Sa = 1; 
+            end
+            clk = 0; #25;
+            clk = 1; #25;
+       end
+       
+       
+endmodule
+module clockDivider(input logic clk, output logic outClk);
+     logic [(31):0] ctr = 1;
+     logic temporaryClk = 0;
+     always @ (posedge clk)
+        begin
+            if(ctr == 150000000)
+                begin
+                     ctr <= 0;
+                    temporaryClk = ~temporaryClk;
+                 end
+             else
+                ctr <= ctr + 1;
+         end
+      assign outClk = temporaryClk;
+ endmodule              
+
+
+module traffic_lights(input logic Sa, Sb, clk, reset, output logic [2:0] La, [2:0] Lb);
+    typedef enum logic [2:0]{S0, S1, S2, S3, S4, S5, S6, S7} State;
+    State currentState, nextState;
+    logic clk2;
+    clockDivider div(clk, clk2);
+    always_ff @(posedge clk2)
+        if(reset)
+            currentState <= S0;
+        else
+            currentState <= nextState;
+     always_comb
+        case(currentState)
+            S0: if(Sa) nextState <= S0;
+                else   nextState <= S1;
+            S1: nextState <= S2;
+            S2: nextState <= S3;
+            S3: nextState <= S4;
+            S4: if(Sb) nextState <= S4;
+                else   nextState <= S5;
+            S5: nextState <= S6;
+            S6: nextState <= S7;
+            S7: nextState <= S0;
+         endcase       
+     assign La[0] = 1;
+     assign Lb[0] = 1;
+     assign La[1] = (currentState == S0 | currentState == S2 | currentState ==  S3 |currentState ==  S4 | currentState ==  S5 |currentState ==  S6 );
+     assign La[2] = (currentState ==  S2 |currentState ==  S3 |currentState ==  S4 |currentState ==  S5 |currentState ==  S6);
+     assign Lb[1] = (currentState == S0 |currentState ==  S1 |currentState ==   S2 |currentState ==  S4 | currentState ==  S6 |currentState ==  S7);
+     assign Lb[2] = (currentState == S0 |currentState ==  S1  |currentState ==   S2 |currentState ==  S6 |currentState ==  S7);
+endmodule

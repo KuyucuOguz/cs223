@@ -1,0 +1,722 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 21.12.2021 16:16:57
+// Design Name: 
+// Module Name: top
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+module reg_file(input logic clk, 
+                input logic [2:0] Adress_1 , 
+                input logic [2:0] Adress_2,
+                input logic[2:0] writeAddres, 
+                input logic[3:0] writeData,
+                input logic WriteEnable,
+                output logic [3:0] data1,
+                output logic [3:0] data2,
+                input logic reset);
+               
+    logic[3:0] regs[7:0];
+    always@(posedge clk)begin
+        if(reset)begin
+            regs[0] <= 4'b0000;
+            regs[1] <= 4'b0000;
+            regs[2] <= 4'b0000;
+            regs[3] <= 4'b0000;
+            regs[4] <= 4'b0000;
+            regs[5] <= 4'b0000;
+            regs[6] <= 4'b0000;
+            regs[7] <= 4'b0000;
+        end
+        else if(WriteEnable)begin
+            regs[writeAddres] <= writeData;
+            for(int i = 0; i < 8; i++)begin
+                if(i !=writeAddres) begin
+                    regs[i] <= regs[i];
+                    end
+            end             
+        end
+        else begin
+            regs[0] <= regs[0];
+            regs[1] <= regs[1];
+            regs[2] <= regs[2];
+            regs[3] <= regs[3];
+            regs[4] <= regs[4];
+            regs[5] <= regs[5];
+            regs[6] <= regs[6];
+            regs[7] <= regs[7];
+        end
+            data1 <= regs[Adress_1];
+            data2 <= regs[Adress_2];
+      end
+        ////be careful , is end needed?   
+endmodule 
+module dataMemory(input logic clk, 
+                  input logic[3:0] Address, 
+                  input logic readEnable,
+                  input logic writeEnable,
+                  input logic[3:0] writeData,
+                  output logic[3:0] readData,
+                  input logic reset);
+    logic [3:0] memory [15:0];
+    always@(posedge clk) begin
+        if(reset)begin
+            memory[0] <= 4'b0000;
+            memory[1] <= 4'b0001;
+            memory[2] <= 4'b0010;
+            memory[3] <= 4'b0011;
+            memory[4] <= 4'b0100;
+            memory[5] <= 4'b0101;
+            memory[6] <= 4'b0110;
+            memory[7] <= 4'b0111;
+            memory[8] <= 4'b1000;
+            memory[9] <= 4'b1001;
+            memory[10] <= 4'b1010;
+            memory[11] <= 4'b1011;
+            memory[12] <= 4'b1100;
+            memory[13] <= 4'b1101;
+            memory[14] <= 4'b1110;
+            memory[15] <= 4'b1111;
+        end
+        else if(readEnable)
+            readData <= memory[Address];
+        else if(writeEnable)
+            memory[Address] <= writeData;
+    end  
+endmodule
+module ALU(input logic[3:0] in1, 
+           input logic[3:0] in2, 
+           input logic[1:0] operation, 
+           output logic[3:0] out,
+           output logic jump);
+       
+       //if operation is 2, add const, else if 1 subtract else if 0 jump
+       always_comb begin
+       jump = 0;
+//       case(operation)
+//       2'b10: 
+//       out = in1 + in2;
+//       2'b01: out = in1 - in2;
+//       2'b00:  if(in1 == in2)
+//                 jump = 1;
+//            else
+//                 jump = 0;
+//       endcase      
+       if(operation == 2'b10)
+           out = in1 + in2;
+       else if(operation == 2'b01)
+             out = in1 - in2;
+       else if(operation == 2'b00)
+            if(in1 == in2)
+                 jump = 1;
+           else
+                 jump = 0;
+        end
+endmodule
+
+module dataPath(input logic clk, 
+                input logic[2:0] RF_add1, 
+                input logic[2:0] RF_add2, 
+                input logic[2:0] RF_wa,
+                input logic RF_we,
+                input logic[3:0] M_addres,
+                input logic M_re,
+                input logic M_we,
+                input logic[1:0] operation,
+                input logic[2:0] constant,
+                input logic reset,
+                output logic[3:0] in1, 
+                output logic[3:0] in2, 
+                output logic[3:0] out,
+                output logic jump);
+    logic[3:0] rf_out1;
+    logic[3:0] rf_out2;
+    logic[3:0] dm_out;
+    logic[3:0] RF_wd;
+    logic alu_sel;
+    logic reg_wr_sel;
+    always@(*)
+    if(operation==2'b10)
+         reg_wr_sel <= 0;
+    else
+        reg_wr_sel <= 1;  
+    reg_file rf(clk, RF_add1, RF_add2, RF_wa, RF_wd, RF_we, rf_out1, rf_out2, reset);
+    dataMemory mem(clk, M_addres, M_re, M_we, rf_out2, dm_out, reset);
+    always_comb begin
+        if(operation == 2'b10 )
+           alu_sel = 1;
+        else
+            alu_sel = 0;
+        
+        if(alu_sel == 1)    
+            in2 = constant;
+        else
+            in2 = rf_out2;
+        in1 = rf_out1;
+    end
+       
+        
+ 
+    //mux2_1_4_bit mux(rf_out2, constant, alu_sel, in2);
+    ALU alu(in1, in2, operation, out, jump);
+
+//    always_ff@(posedge clk)begin
+//        in1<=in1;
+//        in2<=in2;
+//        out<=out;
+//    end
+    //mux2_1_4_bit mux2(dm_out, out , reg_wr_sel, RF_wd);  
+    assign RF_wd = reg_wr_sel ? out : dm_out;
+      
+endmodule 
+/*module mux2_1_4_bit (input logic[3:0] firstInput,
+              input logic[3:0] secondInput,
+              input logic select, output logic[3:0] out);
+    assign out = select ? secondInput : firstInput;
+endmodule*/
+
+module programCounter(input logic clk,
+                      input logic[2:0] in, 
+                      input logic increment,
+                      input logic reset,
+                      input logic jump,
+                      input logic[2:0] jumpconst,
+                      output logic[2:0] out);
+    always_ff@(posedge clk)begin
+        if(reset)
+            out <= 3'b000;
+        else if(jump)
+            out <= (out +  jumpconst + 1)/8;
+        else if(increment)
+            if( out == 7)
+                out <= 0;
+            else    
+            out<= out + 1;
+        else
+            out<=out;    
+    end                                          
+endmodule
+
+module instructionReg(input logic clk, input logic[11:0] in, output logic[11:0] out);
+    always_ff@(posedge clk)
+        out<=in;
+endmodule
+
+module instructionMemory(input logic clk,
+                         input logic[2:0] count,
+                         output logic[11:0] out);
+    logic[11:0] out0;
+    logic[11:0] out1;
+    logic[11:0] out2;
+    logic[11:0] out3;
+    logic[11:0] out4;
+    logic[11:0] out5;
+    logic[11:0] out6; 
+    logic[11:0] out7;
+    assign out0 = 12'b000_00_000_0010;//RF[0] = D[2]
+    assign out1 = 12'b101_000_000_001;//RF[0] = RF[0] + 1
+    assign out2 = 12'b000_00_001_0001;//rf[1] = d[1]
+    assign out3 = 12'b010_010_000_001;//rf[2] = rf[1] - rf[0]
+    assign out4 = 12'b111_010_010_010;//jump2
+    assign out5 = 12'b101_000_000_100;//RF[0] = rf[0] + 4
+    assign out6 = 12'b101_000_000_101;//RF[0] = RF[0] + 5 
+    assign out7 = 12'b101_000_000_111;//RF[0] = RF[0] + 7;
+    
+    /*
+    assign out0 = 12'b101_00_000_0001;//RF[0] = D[2]
+    assign out1 = 12'b101_00_000_0010;//RF[0] = RF[0] + 1
+    assign out2 = 12'b101_00_000_0011;//rf[1] = d[1]
+    assign out3 = 12'b101_00_000_0100;//rf[2] = rf[1] - rf[0]
+    assign out4 = 12'b101_00_000_0101;//jump2
+    assign out5 = 12'b101_00_000_0111;//RF[0] = rf[0] + 4
+    assign out6 = 12'b101_00_000_0000;//RF[0] = RF[0] + 5 
+    assign out7 = 12'b101_00_000_0001;//RF[0] = RF[0] + 7;
+    */
+    always_ff@(posedge clk)begin
+        if(count == 3'b000)
+            out <= out0;
+        else if(count == 3'b001)
+            out <= out1;
+        else if(count == 3'b010)
+            out <= out2;
+        else if(count == 3'b011)
+            out <= out3;
+        else if(count == 3'b100)
+            out <= out4;
+       else if(count == 3'b101)
+            out <= out5;
+       else if(count == 3'b110)
+            out <= out6;
+       else if(count == 3'b111)
+            out <= out7;     
+    end
+endmodule
+
+module controller(input logic clk,
+                  input logic reset,
+                  input logic button,
+                  input logic isexternal,
+                  input logic[11:0] instructions,
+                  input logic jump,
+                  output logic[2:0] RF_add1,
+                  output logic[2:0] RF_add2,
+                  output logic[2:0] RF_wa,
+                  output logic RF_we,
+                  output logic[2:0] constant,
+                  output logic[3:0] M_add,
+                  output logic M_re,
+                  output logic M_we,
+                  output logic[1:0] ALU_op,
+                  output logic[2:0] pc_jump,
+                  output logic increment,
+                  output logic external);
+    typedef enum logic [4:0]{Init, Fetch, Decodefromswitches, decodeFromIM, load, store, 
+     sub, add, jump_control, jumpstate, add_state, subtract_state, load_state, store_state} State;
+    State currentState, nextState;
+
+    always_ff @(posedge clk)
+        if(reset)
+            currentState <= Init;
+        else
+            currentState <= nextState;
+        always_comb begin
+        case(currentState)
+        Init: nextState <= Fetch;
+        Fetch: 
+            if(button)
+                nextState <= decodeFromIM;
+            else if(isexternal)
+                nextState <= Decodefromswitches;
+            else
+                nextState <= Fetch;
+        Decodefromswitches: begin
+        if(instructions[11:9] == 3'b000)
+            nextState <= load;
+        else if(instructions[11:9] == 1)
+            nextState <= store;
+        else if(instructions[11:9] == 2)
+            nextState <=sub;
+        else if(instructions[11:9] == 5)
+            nextState <=add;
+        else if(instructions[11:9] == 7)
+            nextState<=jump_control;
+        end
+                decodeFromIM:begin 
+        if(instructions[11:9] == 3'b000)
+            nextState <= load;
+        else if(instructions[11:9] == 1)
+            nextState <= store;
+        else if(instructions[11:9] == 2)
+            nextState <=sub;
+        else if(instructions[11:9] == 5)
+            nextState <=add;
+        else if(instructions[11:9] == 7)
+            nextState<=jump_control;
+        end
+            
+        load: nextState <= load_state;
+        store: nextState <= Fetch;
+        load_state: nextState <= Fetch;
+        store_state: nextState <= Fetch;
+        sub: nextState <= subtract_state;
+        add: nextState <= add_state;
+        add_state: nextState <=Fetch;
+        subtract_state: nextState <= Fetch;
+        jump_control: 
+            nextState <= jumpstate;
+        jumpstate:
+            nextState<=Fetch;
+        endcase
+        case(currentState)
+        Init: begin
+            RF_we <= 0;
+            M_re <= 0;
+            M_we <= 0;
+            pc_jump <= 0;
+            increment<=0;
+            external <= 0;
+        end
+       Fetch:begin
+            RF_we <= 0;
+            M_re <= 0;
+            M_we <= 0;
+            pc_jump <= 0;
+            increment <=0;
+            external<=0;
+            //jump<= 0;
+            //constant<= 0;            
+        end
+        decodeFromIM: begin
+            increment <=1;
+            external <= 0;
+        end
+        Decodefromswitches: begin
+            increment <=0;
+            external <= 1;
+        end
+        store:begin
+            M_we <= 1;
+            RF_add1 <= instructions[6:4];
+            M_add <= instructions[3:0];
+            increment <= 0;
+            
+        end
+        /*store_state: begin
+            M_we <=1;
+        end
+        */
+        load:begin
+            M_re <= 1;
+            RF_we <= 1;
+            RF_wa <= instructions[6:4];
+            M_add <= instructions[3:0];
+            increment <= 0;
+           end
+        /*
+        load_state: begin
+              RF_we <= 1;
+              M_re <= 1;
+              RF_wa <= instructions[6:4];
+              M_add <= instructions[3:0];
+        end
+        */
+         sub: begin
+            //RF_we <= 1;
+            RF_add1 <= instructions[5:3];
+            RF_add2 <= instructions[2:0];
+            //RF_wa <= instructions[8:6];
+            ALU_op <= 2'b01;
+            increment <= 0;
+        end
+        add:begin
+         
+            RF_we <= 0;
+            RF_add1 <= instructions[5:3];
+            constant <= instructions[2:0];
+            ALU_op <= 2'b10;
+            //RF_we <= 1;
+            //RF_wa <= instructions[8:6];
+            increment <= 0;
+        end
+        add_state: begin
+            RF_we <= 1;
+            RF_wa <= instructions[8:6];
+            increment <= 0;
+        end 
+        subtract_state: begin
+            RF_we <= 1;
+            RF_wa <= instructions[8:6];
+            increment <= 0;
+        end
+        jump_control:begin
+        //ALU_op <= 2'b00; 
+                RF_add1 <= instructions[2:0]; 
+                RF_add2 <= instructions[5:3];
+                //RF_wa <= instructions[8:6];
+                ALU_op <= 2'b00;
+                    
+        end    
+        jumpstate:begin
+            if(jump)
+                pc_jump = instructions[9:7];
+                
+        end
+      endcase
+   end
+endmodule
+
+
+module control_unit(input logic clk,
+                    input logic reset1,
+                    input logic[11:0] switches,
+                    input logic jump,
+                    input logic button, 
+                    input logic isexternal,
+                output logic[2:0] RF_add1, 
+                output logic[2:0] RF_add2, 
+                output logic[2:0] RF_wa,
+                output logic RF_we,
+                output logic[3:0] M_addres,
+                output logic M_re,
+                output logic M_we,
+                output logic[1:0] operation,
+                output logic[2:0] constant,
+                output logic external
+         );
+    logic[2:0] pc_jump;
+    logic[2:0] in_pc;
+    logic[2:0] out_pc;
+    logic[11:0] instructionsfromfile;
+    logic[11:0] instructions;
+    logic[11:0] instructions1;
+    logic increment;
+    logic writeEnable;
+    //logic external;
+    instructionMemory instructor ( clk, out_pc, instructionsfromfile); 
+    programCounter count(clk, in_pc, increment, reset1, jump, pc_jump, out_pc);
+        always_comb
+    if(external)
+        instructions1 = switches;
+    else
+        instructions1 = instructionsfromfile;
+    controller control(clk, reset1, button, isexternal, instructions, jump, RF_add1,
+                  RF_add2, RF_wa, RF_we, constant, M_addres, M_re, M_we, operation, pc_jump ,increment, external);
+   
+   instructionReg regi (clk, instructions1, instructions);               
+endmodule                                   
+ 
+module top(input logic clk, input logic[11:0] switches, input logic button,
+           input logic isExternal, input logic reset, 
+           //output logic[6:0] seg, 
+           //output logic[2:0] countt, 
+           output logic[3:0] A,
+           output logic[3:0] B,
+           output logic[3:0] result,
+           output logic led);
+    logic jump;
+    logic[2:0] RF_add1;
+    logic[2:0] RF_add2;
+    logic[2:0] RF_wa;
+    logic RF_we;
+    logic[3:0] M_addres;
+    logic external;
+    logic M_re;
+    logic M_we;
+    logic[1:0] operation;
+    logic[2:0] constant;
+    logic isexternal;
+    logic clk2;
+    logic button2;
+    logic isExternal2;
+    logic[2:0] counttt;
+    assign counttt = 3'b001;
+    //assign countt =3'b001;
+    logic[6:0] Aseg;
+    logic[6:0] Bseg;
+    logic[6:0] resultSeg;
+    clockDivider div(clk, clk2);
+    //debouncer debounce(button, clk2, button2);
+    //debouncer debounce2(isExternal, clk2, isExternal2);
+
+    control_unit crtl (clk2, reset, switches, jump, button, isExternal, RF_add1, RF_add2, RF_wa,
+    RF_we, M_addres, M_re, M_we, operation, constant, external);
+    dataPath path(clk2, RF_add1, RF_add2, RF_wa, RF_we, M_addres, M_re, M_we, operation,
+                 constant, reset, A,  B, result, jump);
+    assign led = 1;                 
+/*    sevenseg seg1( A, Aseg);
+    sevenseg seg2( B, Bseg);
+    sevenseg seg3( result, resultSeg); 
+    always_ff@(posedge clk)begin
+        if(countt == 3'b001)
+            seg <= Aseg;
+        else if(countt == 3'b010)
+            seg <= Bseg;
+        else 
+            seg <= resultSeg;
+        if(countt == 3'b001 )
+             countt <= 3'b010;
+        else if(countt == 3'b010)
+            countt <= 3'b100;
+        else
+             countt <= 3'b001;
+        
+    end*/
+          
+endmodule
+
+/*module test();
+    logic clk;
+    logic[11:0] switches;
+    logic button;
+    logic isexternal;
+    logic reset;
+    logic[3:0] A;
+    logic[3:0] B;
+    logic[3:0] result;
+    logic[6:0] segments;
+    logic[2:0] count;
+    top dut(clk, switches, button, isexternal, reset,
+    //segments,count,
+     A, B, result);
+    
+    initial begin
+    clk = 0;#1;
+    reset = 0;#1;
+    clk = 1;#1;
+    reset = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    isexternal = 0;#1
+    clk = 0;#1;
+    clk = 1;#1;
+    reset = 0; #1;
+    clk = 0;#1; 
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1
+    button = 1;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    reset = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1
+    reset = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1
+    switches = 12'b101_000_000_110;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1 
+    button = 1;#1; 
+    reset = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1
+    button = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1
+    button = 1;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1
+    reset = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1
+    switches = 12'b101_001_000_010;#1
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1
+    button = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;  
+    switches = 12'b101_001_000_001;#1;
+    button = 1;#1;  
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1; 
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1; 
+    clk = 1;#1;
+    clk = 0;#1; 
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    button = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    isexternal = 1;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;
+    clk = 1;#1;
+    clk = 0;#1;     
+    end
+endmodule   
+*/
+module clockDivider(input logic clk, output logic outClk);
+    logic [(31):0] ctr = 1;
+    logic temporaryClk = 0;
+    always @ (posedge clk)
+    begin
+        if(ctr == 300000000)
+        begin
+        ctr <= 0;
+        temporaryClk = ~temporaryClk;
+        end
+    else
+        ctr <= ctr + 1;
+    end
+        assign outClk = temporaryClk;
+endmodule
+
+
+/*module sevenseg(input logic[3:0] a, 
+                 output logic[6:0] cathode);
+     always_comb begin
+        case(a)
+        0:cathode <= 100_0000;
+        1:cathode <= 111_1001;
+        2:cathode <= 010_0100;
+        3:cathode <= 011_0000;
+        4:cathode <= 001_1001;
+        5:cathode <= 001_0010;
+        6:cathode <= 000_0010;
+        7:cathode <= 11_1000;
+        8:cathode <= 000_0000;
+        9:cathode <= 001_0000;
+        10:cathode <= 000_1000;
+        11:cathode <= 000_0110;
+        12:cathode <= 100_0000;
+        13:cathode <= 010_0001;
+        14:cathode <= 000_0110;
+        15:cathode <= 000_1110;
+        default: cathode <= 011_1111;
+        endcase
+    end         
+     
+    //assign anode = 8'b0000_0000;
+endmodule
+*/
+

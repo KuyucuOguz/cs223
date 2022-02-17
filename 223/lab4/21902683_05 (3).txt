@@ -1,0 +1,84 @@
+module mux4_1 ( input logic in1, in2, in3, in4, select0, select1,output logic outp); 
+    assign outp = select1 ? (select0 ? in4 : in3) : (select0 ? in2 : in1);  
+endmodule
+
+
+module flopr(input logic clk,
+reset, d, output logic q);
+ // synchronous reset
+    always_ff @(posedge clk)
+        if (reset)
+            q <= 0;
+        else
+            q <= d;
+endmodule
+module clockDivider(input logic clk, output logic outClk);
+     logic [(31):0] ctr = 1;
+     logic temporaryClk = 0;
+     always @ (posedge clk)
+        begin
+            if(ctr == 100000000)
+                begin
+                     ctr <= 0;
+                    temporaryClk = ~temporaryClk;
+                 end
+             else
+                ctr <= ctr + 1;
+         end
+      assign outClk = temporaryClk;
+ endmodule          
+module multifunction_reg(input logic [3:0] K, input logic shl_in, shr_in, sel0, sel1, clk, reset, output logic [3:0] Q);
+    logic [3:0] next;
+    logic clk2;
+    clockDivider div(clk,clk2);
+    flopr ff1(clk2, reset, next[0], Q[0]);
+    flopr ff2(clk2, reset, next[1], Q[1]);
+    flopr ff3(clk2, reset, next[2], Q[2]);
+    flopr ff4(clk2, reset, next[3], Q[3]);
+    mux4_1 mux1(Q[0], K[0], Q[1], shl_in, sel0, sel1, next[0] );
+    mux4_1 mux2(Q[1], K[1], Q[2], Q[0], sel0, sel1, next[1]);
+    mux4_1 mux3(Q[2], K[2], Q[3], Q[1], sel0, sel1, next[2]);
+    mux4_1 mux4(Q[3], K[3], shr_in, Q[2], sel0, sel1, next[3]);
+
+endmodule
+module multifunction_reg(input logic [3:0] K, input logic shl_in, shr_in, sel0, sel1 ,clk, reset, output logic [3:0] Q);
+    logic [3:0] next;
+    flopr ff1(clk, reset, next[0], Q[0]);
+    flopr ff2(clk, reset, next[1], Q[1]);
+    flopr ff3(clk, reset, next[2], Q[2]);
+    flopr ff4(clk, reset, next[3], Q[3]);
+    m41 m1(Q[0], K[0], Q[1], shl_in, sel0, sel1, next[0] );
+    m41 m2(Q[1], K[1], Q[2], Q[0], sel0, sel1, next[1]);
+    m41 m3(Q[2], K[2], Q[3], Q[1], sel0, sel1, next[2]);
+    m41 m4(Q[3], K[3], shr_in, Q[2], sel0, sel1, next[3]);
+   
+endmodule
+
+module test();
+    logic [3:0] K ;
+    logic shr_in, shl_in, sel0, sel1, reset, clk;
+    logic [3:0] Q;
+    
+    multifunction_reg func(K, shl_in,shr_in, sel0, sel1,clk, reset, Q);
+    initial begin
+    reset = 1; clk = 0;#5
+    clk = 1; #5;
+    reset = 0; 
+    clk = 0; #5;
+    K[3] = 0;
+    K[2] = 0;
+    K[1] = 0;
+    K[0] = 0;
+    shl_in = 0;
+    sel0 = 0;
+    sel1 = 0;
+    clk = 1; #5;
+    
+   
+       for (int i=0; i<512; i=i+1)
+        begin
+            {K[3], K[2], K[1], K[0],shl_in, shr_in, sel0, sel1,clk} = i;
+            #5;
+        end
+     end
+endmodule
